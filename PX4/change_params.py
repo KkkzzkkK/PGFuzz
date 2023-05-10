@@ -25,7 +25,7 @@ target_throttle = 1800
 # python /usr/local/bin/mavproxy.py --mav=/dev/tty.usbserial-DN01WM7R --baudrate 57600 --out udp:127.0.0.1:14540 --out udp:127.0.0.1:14550
 #connection_string = '0.0.0.0:14540'
 connection_string = '0.0.0.0:14550'
-master = mavutil.mavlink_connection('udp:'+ connection_string)
+master = mavutil.mavlink_connection(f'udp:{connection_string}')
 
 master.wait_heartbeat()
 print("HEARTBEAT OK\n")
@@ -36,6 +36,6 @@ while True:
                                 'MC_PITCHRATE_FF',
                                 9999,
                                 mavutil.mavlink.MAV_PARAM_TYPE_REAL32)
-                                
+
         time.sleep(0.5)
 

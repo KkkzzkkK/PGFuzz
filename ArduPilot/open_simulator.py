@@ -13,7 +13,7 @@ ARDUPILOT_HOME = os.getenv("ARDUPILOT_HOME")
 if ARDUPILOT_HOME is None:
     raise Exception("ARDUPILOT_HOME environment variable is not set!")
 
-c = ARDUPILOT_HOME + 'Tools/autotest/sim_vehicle.py -v ArduCopter --console --map -w'
+c = f'{ARDUPILOT_HOME}Tools/autotest/sim_vehicle.py -v ArduCopter --console --map -w'
 #c = '~/ardupilot_pgfuzz/Tools/autotest/sim_vehicle.py -v ArduCopter --console --map -w' 
 
 #handle = Popen(c, stdin=PIPE, stderr=PIPE, stdout=PIPE, shell=True)
@@ -24,19 +24,17 @@ handle = Popen(c, shell=True)
 while True:
 	
 
-	f = open("shared_variables.txt", "r")
-	
-	if f.read() == "reboot":
+    f = open("shared_variables.txt", "r")
 
-		open("shared_variables.txt", "w").close()	
-		
-		fi = open("restart.txt", "w")
-		fi.write("restart")
-		fi.close()
+    if f.read() == "reboot":
 
-		os.killpg(os.getpgid(handle.pid), signal.SIGTERM)
-	
-	time.sleep(1)
+        open("shared_variables.txt", "w").close()	
+
+        with open("restart.txt", "w") as fi:
+            fi.write("restart")
+        os.killpg(os.getpgid(handle.pid), signal.SIGTERM)
+
+    time.sleep(1)
 
 """
 print(os.getpgid(handle.pid))

@@ -54,10 +54,8 @@ PARAM_MAX = 10000
 required_min_thr = 975
 #------------------------------------------------------------------------------------
 def write_log(print_log):
-	# Log mutated user command
-	mutated_log = open("mutated_log.txt","a")
-	mutated_log.write(print_log)
-	mutated_log.close()
+	with open("mutated_log.txt","a") as mutated_log:
+		mutated_log.write(print_log)
 
 #------------------------------------------------------------------------------------
 def re_launch():
@@ -239,22 +237,22 @@ def change_wind_dir(value):
         time.sleep(1)
 	"""
         # Set parameter value
-        if value == 1:
-                wind_dir = random.randint(1, 360)
-        elif value == 0:
-                wind_dir = 180
+	if value == 1:
+	        wind_dir = random.randint(1, 360)
+	elif value == 0:
+	        wind_dir = 180
 
-        master.mav.param_set_send(master.target_system, master.target_component,
-                                'SIM_WIND_DIR',
-                                wind_dir,
-                                mavutil.mavlink.MAV_PARAM_TYPE_REAL32)
+	master.mav.param_set_send(master.target_system, master.target_component,
+	                        'SIM_WIND_DIR',
+	                        wind_dir,
+	                        mavutil.mavlink.MAV_PARAM_TYPE_REAL32)
 	# Read ACK
 	"""
 	message = master.recv_match(type='PARAM_VALUE', blocking=True).to_dict()
         print('name: %s\tvalue: %d' % (message['param_id'].decode("utf-8"), message['param_value']))
 	"""
 
-        time.sleep(3)
+	time.sleep(3)
 	"""
         # Request parameter value to confirm
         master.mav.param_request_read_send(master.target_system, master.target_component,'SIM_WIND_DIR',-1)
@@ -263,13 +261,11 @@ def change_wind_dir(value):
         message = master.recv_match(type='PARAM_VALUE', blocking=True).to_dict()
         print('(After) name: %s\tvalue: %d' % (message['param_id'].decode("utf-8"), message['param_value']))
 	"""
-        # Log mutated user command
-        print_cmd = ""
-        print_cmd += "wind_dir"
-        print_cmd += " "
-        print_cmd += str(wind_dir)
-        print_cmd += "\n"
-        write_log(print_cmd)
+	print_cmd = "" + "wind_dir"
+	print_cmd += " "
+	print_cmd += str(wind_dir)
+	print_cmd += "\n"
+	write_log(print_cmd)
 
 #------------------------------------------------------------------------------------
 def change_wind(value):
@@ -289,9 +285,9 @@ def change_wind(value):
 		rand_wind = 0
 
 	master.mav.param_set_send(master.target_system, master.target_component,
-                          	'SIM_WIND_SPD',
-                           	rand_wind,
-                           	mavutil.mavlink.MAV_PARAM_TYPE_REAL32)
+	'SIM_WIND_SPD',
+	rand_wind,
+	mavutil.mavlink.MAV_PARAM_TYPE_REAL32)
 	# Read ACK
 	"""
 	message = master.recv_match(type='PARAM_VALUE', blocking=True).to_dict()
@@ -306,13 +302,11 @@ def change_wind(value):
 	message = master.recv_match(type='PARAM_VALUE', blocking=True).to_dict()
 	print('(After) name: %s\tvalue: %d' % (message['param_id'].decode("utf-8"), message['param_value']))
 	"""
-        # Log mutated user command
-        print_cmd = ""
-        print_cmd += "wind"
-        print_cmd += " "
-        print_cmd += str(rand_wind)
-        print_cmd += "\n"
-        write_log(print_cmd)
+	print_cmd = "" + "wind"
+	print_cmd += " "
+	print_cmd += str(rand_wind)
+	print_cmd += "\n"
+	write_log(print_cmd)
 
 #------------------------------------------------------------------------------------
 #---------------------------- (Start) READ STATES OF AP -----------------------------
@@ -403,7 +397,7 @@ def calculate_distance():
 	global HUD_LOCK
 	global get_target_flight_mode
 
-	temp_alt_distance = alt_distance	
+	temp_alt_distance = alt_distance
 	#previous_altitude = current_altitude
 
 	#HUD_LOCK = 1
@@ -415,12 +409,8 @@ def calculate_distance():
 	# 584: 0m / 594: 10m
 	alt_distance = (current_altitude - 594)/594
 	print("### Current altitude: %f, altitude distance: %f ###" %(current_altitude, alt_distance))
-	
-        if get_target_flight_mode == 14:
-                flight_distance = 1
-        elif get_target_flight_mode != 14:
-                flight_distance = -1
 
+	flight_distance = 1 if get_target_flight_mode == 14 else -1
 	"""
 	if current_flight_mode == "FLIP":
 		flight_distance = 1
@@ -441,32 +431,32 @@ def calculate_distance():
 	elif (abs(temp_alt_distance) < abs(alt_distance)) and (target_alt_direction == 1):
 		target_alt_direction = 0
 	"""
-	
+
 	# if 0: up / 1: down
 	# 1) RC: up, Alt: up, Dist: up --> Action: down direction
-        if (previous_altitude < current_altitude and abs(temp_alt_distance) < abs(alt_distance)) and target_throttle > 1500:
-                target_alt_direction = 1
+	if (previous_altitude < current_altitude and abs(temp_alt_distance) < abs(alt_distance)) and target_throttle > 1500:
+	        target_alt_direction = 1
         # 2) RC: up, Alt: down, Dist: up --> Action: up direction
-        elif (previous_altitude > current_altitude and abs(temp_alt_distance) < abs(alt_distance)) and target_throttle > 1500:
-                target_alt_direction = 0
+	elif (previous_altitude > current_altitude and abs(temp_alt_distance) < abs(alt_distance)) and target_throttle > 1500:
+	        target_alt_direction = 0
 	# 3) RC: up, Alt: down, Dist: down --> Action: down direction
 	elif (previous_altitude > current_altitude and abs(temp_alt_distance) > abs(alt_distance)) and target_throttle > 1500:
-                target_alt_direction = 1
+	        target_alt_direction = 1
 	# 4) RC: up, Alt: up, Dist: down --> Action: up direction
-        elif (previous_altitude < current_altitude and abs(temp_alt_distance) > abs(alt_distance)) and target_throttle > 1500:
-                target_alt_direction = 0	
+	elif (previous_altitude < current_altitude and abs(temp_alt_distance) > abs(alt_distance)) and target_throttle > 1500:
+	        target_alt_direction = 0	
 	# 5) RC: down, Alt: up, Dist: up --> Action: down direction
-        elif (previous_altitude < current_altitude and abs(temp_alt_distance) < abs(alt_distance)) and target_throttle < 1500:
-                target_alt_direction = 1
+	elif (previous_altitude < current_altitude and abs(temp_alt_distance) < abs(alt_distance)) and target_throttle < 1500:
+	        target_alt_direction = 1
 	# 6) RC: down, Alt: up, Dist: down --> Action: up direction
-        elif (previous_altitude < current_altitude and abs(temp_alt_distance) > abs(alt_distance)) and target_throttle < 1500:
-                target_alt_direction = 0
+	elif (previous_altitude < current_altitude and abs(temp_alt_distance) > abs(alt_distance)) and target_throttle < 1500:
+	        target_alt_direction = 0
 	# 7) RC: down, Alt: down, Dist: down --> Action: down direction
-        elif (previous_altitude > current_altitude and abs(temp_alt_distance) > abs(alt_distance)) and target_throttle < 1500:
-                target_alt_direction = 1
+	elif (previous_altitude > current_altitude and abs(temp_alt_distance) > abs(alt_distance)) and target_throttle < 1500:
+	        target_alt_direction = 1
 	# 8) RC: down, Alt: down, Dist: up --> Action: up direction
-        elif (previous_altitude > current_altitude and abs(temp_alt_distance) < abs(alt_distance)) and target_throttle < 1500:
-                target_alt_direction = 0
+	elif (previous_altitude > current_altitude and abs(temp_alt_distance) < abs(alt_distance)) and target_throttle < 1500:
+	        target_alt_direction = 0
 
 
 	"""
@@ -484,7 +474,7 @@ def calculate_distance():
                 target_alt_direction = 1
 	"""
 
-	
+
 	if target_alt_direction == 0:
 		print("### target altitude direction is upward")
 	elif target_alt_direction == 1:
@@ -908,9 +898,9 @@ def randomly_pick_up_cmd(mandatory):
 master.wait_heartbeat()
 
 # request data to be sent at the given rate
-for i in range(0, 3):
+for _ in range(0, 3):
 	master.mav.request_data_stream_send(master.target_system, master.target_component,
-                mavutil.mavlink.MAV_DATA_STREAM_ALL, 6, 1)
+	mavutil.mavlink.MAV_DATA_STREAM_ALL, 6, 1)
 
 message = master.recv_match(type='VFR_HUD', blocking=True)
 home_altitude = message.alt
@@ -924,9 +914,9 @@ mode = 'GUIDED'
 
 # Check if mode is available
 if mode not in master.mode_mapping():
-    print('Unknown mode : {}'.format(mode))
-    print('Try:', list(master.mode_mapping().keys()))
-    exit(1)
+	print(f'Unknown mode : {mode}')
+	print('Try:', list(master.mode_mapping().keys()))
+	exit(1)
 
 # Get mode ID
 mode_id = master.mode_mapping()[mode]
@@ -1046,7 +1036,7 @@ time.sleep(5)
 # Maintain mid-position of stick on RC controller 
 goal_throttle = 1500
 t1 = threading.Thread(target=throttle_th, args=())
-t1.daemon = True 
+t1.daemon = True
 t1.start()
 
 """

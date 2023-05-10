@@ -32,7 +32,7 @@ print(sys.version)
 
 # python /usr/local/bin/mavproxy.py --mav=/dev/tty.usbserial-DN01WM7R --baudrate 57600 --out udp:127.0.0.1:14540 --out udp:127.0.0.1:14550
 connection_string = '0.0.0.0:14540'
-master = mavutil.mavlink_connection('udp:'+connection_string)
+master = mavutil.mavlink_connection(f'udp:{connection_string}')
 
 master.wait_heartbeat()
 print("HEARTBEAT OK\n")
@@ -49,7 +49,7 @@ goal_throttle = 1500
 #        0,  # twisting of the joystick
 #        0)    # 1 for pressed, 0 for released
 t = threading.Thread(target=throttle_th, args=())
-t.daemon = True 
+t.daemon = True
 t.start()
 
 
@@ -59,7 +59,9 @@ while True:
     value = int(value)
     print('%s = %d' %(target, value));
 
-    if target == "pitch":
+    if target == "mode":
+        target_rc5 = value
+    elif target == "pitch":
         target_pitch = value
     elif target == "roll":
         target_roll = value
@@ -67,6 +69,4 @@ while True:
         target_throttle = value
     elif target == "yaw":
         target_yaw = value
-    elif target == "mode":
-        target_rc5 = value
 

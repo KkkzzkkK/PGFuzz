@@ -76,15 +76,12 @@ een_yaw_avg = 0.0
 Target_flight_mode = 2 # 2: ALT_HOLD, 14: FLIP
 #------------------------------------------------------------------------------------
 def write_log(print_log):
-	# Log mutated user command
-	mutated_log = open("mutated_log.txt","a")
-	mutated_log.write(print_log)
-	mutated_log.close()
+	with open("mutated_log.txt","a") as mutated_log:
+		mutated_log.write(print_log)
 #------------------------------------------------------------------------------------
 def write_een_log(een_log):
-	een_print = open("EEN_log.txt", "a")
-	een_print.write(een_log)
-	een_print.close()
+	with open("EEN_log.txt", "a") as een_print:
+		een_print.write(een_log)
 
 #------------------------------------------------------------------------------------
 def verify_real_number(item):
@@ -235,7 +232,7 @@ def handle_target(msg):
 
 	global current_altitude
 	global current_roll
-        global current_pitch
+	global current_pitch
 	global current_heading
 	global alt_error
 	global roll_error
@@ -271,11 +268,11 @@ def handle_target(msg):
         #print "%0.2f\t%0.2f\t%0.2f\t%0.2f\t%0.2f\t%0.2f\t" % reference
 
 	#print("\nRoll error:%f, pitch error:%f, heading error:%f\n" %(abs(msg.nav_roll - current_roll), abs(msg.nav_pitch - current_pitch), abs(msg.nav_bearing - current_heading)))
-	
+
 	print("cur_roll: %f, desired_roll:%f" %(current_roll, msg.nav_roll))
 	print("cur_pitch: %f, desired_pitch:%f" %(current_pitch, msg.nav_pitch))
 	print("cur_yaw: %f, desired_yaw:%f" %(current_heading, msg.nav_bearing))
-	
+
 	# For een (eliminate environmental noise)
 	een_alt += current_altitude + alt_error
 	een_roll += msg.nav_roll
@@ -297,28 +294,26 @@ def handle_target(msg):
 		een_pitch = 0
 		een_yaw = 0
 
-	# Log for een
-        print_een = ""
-        print_een += str(time.time())
-        print_een += ","
+	print_een = f"{str(time.time())}"
+	print_een += ","
 	print_een += str(current_altitude)
-        print_een += ","
+	print_een += ","
 	print_een += str(current_altitude + alt_error)
-        print_een += ","
-        print_een += str(een_alt_avg)
-        print_een += ","
+	print_een += ","
+	print_een += str(een_alt_avg)
+	print_een += ","
 	print_een += str(current_roll)
-        print_een += ","
-        print_een += str(een_roll_avg)
-        print_een += ","
+	print_een += ","
+	print_een += str(een_roll_avg)
+	print_een += ","
 	print_een += str(current_pitch)
-        print_een += ","
-        print_een += str(een_pitch_avg)
-        print_een += ","
+	print_een += ","
+	print_een += str(een_pitch_avg)
+	print_een += ","
 	print_een += str(current_heading)
-        print_een += ","
-        print_een += str(een_yaw_avg)
-        print_een += "\n"
+	print_een += ","
+	print_een += str(een_yaw_avg)
+	print_een += "\n"
 	write_een_log(print_een)
 
 
@@ -432,9 +427,9 @@ print("#------------------------------------------------------------------------
 master.wait_heartbeat()
 
 # request data to be sent at the given rate
-for i in range(0, 3):
+for _ in range(0, 3):
 	master.mav.request_data_stream_send(master.target_system, master.target_component,
-                mavutil.mavlink.MAV_DATA_STREAM_ALL, 6, 1)
+	mavutil.mavlink.MAV_DATA_STREAM_ALL, 6, 1)
 
 message = master.recv_match(type='VFR_HUD', blocking=True)
 
@@ -443,9 +438,9 @@ mode = 'GUIDED'
 
 # Check if mode is available
 if mode not in master.mode_mapping():
-    print('Unknown mode : {}'.format(mode))
-    print('Try:', list(master.mode_mapping().keys()))
-    exit(1)
+	print(f'Unknown mode : {mode}')
+	print('Try:', list(master.mode_mapping().keys()))
+	exit(1)
 
 # Get mode ID
 mode_id = master.mode_mapping()[mode]
@@ -518,7 +513,7 @@ time.sleep(30)
 # Maintain mid-position of stick on RC controller 
 goal_throttle = 1500
 t1 = threading.Thread(target=throttle_th, args=())
-t1.daemon = True 
+t1.daemon = True
 t1.start()
 
 mode_id = master.mode_mapping()['LOITER']

@@ -126,10 +126,8 @@ def check_liveness():
 
         if heartbeat_cnt < 1:
             store_mutated_inputs()
-            # The RV software is crashed
-            f = open("shared_variables.txt", "w")
-            f.write("reboot")
-            f.close()
+            with open("shared_variables.txt", "w") as f:
+                f.write("reboot")
             end_flag = 1
         else:
             heartbeat_cnt = 0
@@ -139,7 +137,7 @@ def check_liveness():
 
 # ------------------------------------------------------------------------------------
 def set_preconditions(filepath):
-    for line in open(filepath, 'r').readlines():
+    for line in open(filepath, 'r'):
         row = line.rstrip().split(' ')
 
         master.mav.param_set_send(master.target_system, master.target_component,
@@ -148,34 +146,30 @@ def set_preconditions(filepath):
                                   mavutil.mavlink.MAV_PARAM_TYPE_REAL32)
         time.sleep(1)
 
-        print("[Set_preconditions] %s = %s" % (row[0], row[1]))
+        print(f"[Set_preconditions] {row[0]} = {row[1]}")
 
 
 # ------------------------------------------------------------------------------------
 def write_guidance_log(print_log, action):
     # Log mutated user command
     if action == "append":
-        guidance_log = open("guidance_log.txt", "a")
-        guidance_log.write(print_log)
-        guidance_log.close()
-        print("[write_guidance_log] appending: %s" % print_log)
+        with open("guidance_log.txt", "a") as guidance_log:
+            guidance_log.write(print_log)
+        print(f"[write_guidance_log] appending: {print_log}")
 
     elif action == "write":
         guidance_log = open("guidance_log.txt", "w")
         guidance_log.close()
 
-        guidance_log = open("guidance_log.txt", "w")
-        guidance_log.write(print_log)
-        guidance_log.close()
-        print("[write_guidance_log] re-writing: %s" % print_log)
+        with open("guidance_log.txt", "w") as guidance_log:
+            guidance_log.write(print_log)
+        print(f"[write_guidance_log] re-writing: {print_log}")
 
 
 # ------------------------------------------------------------------------------------
 def write_log(print_log):
-    # Log mutated user command
-    mutated_log = open("mutated_log.txt", "a")
-    mutated_log.write(print_log)
-    mutated_log.close()
+    with open("mutated_log.txt", "a") as mutated_log:
+        mutated_log.write(print_log)
 
 
 # ------------------------------------------------------------------------------------
@@ -236,11 +230,8 @@ def re_launch():
 
     time.sleep(3)
 
-    # Step 2. Reboot the RV's control program
-    f = open("shared_variables.txt", "w")
-    f.write("reboot")
-    f.close()
-
+    with open("shared_variables.txt", "w") as f:
+        f.write("reboot")
     time.sleep(48)
 
     mutated_log = open("mutated_log.txt", "w")
@@ -312,7 +303,9 @@ def change_parameter(selected_param):
     global Current_input
     global Current_input_val
 
-    print("# [Change_parameter()] selected params: %s" % read_inputs.param_name[selected_param])
+    print(
+        f"# [Change_parameter()] selected params: {read_inputs.param_name[selected_param]}"
+    )
 
     no_range = 0
     param_name = read_inputs.param_name[selected_param]
@@ -354,7 +347,7 @@ def change_parameter(selected_param):
 
     if Current_input_val != "null":
         param_value = float(Current_input_val)
-        print("@@@[Reuse stored input pair] (%s, %s)@@@" % (param_name, Current_input_val))
+        print(f"@@@[Reuse stored input pair] ({param_name}, {Current_input_val})@@@")
 
     # 2) Set parameter value
     master.mav.param_set_send(master.target_system, master.target_component,
@@ -367,8 +360,7 @@ def change_parameter(selected_param):
     Current_input = param_name
     Current_input_val = str(param_value)
 
-    print_param = ""
-    print_param += "P "
+    print_param = "" + "P "
     print_param += param_name
     print_param += " "
     print_param += str(param_value)
@@ -532,7 +524,7 @@ def handle_status(msg):
 
     status_data = (msg.severity, msg.text)
     print
-    "[status_text] %s" % msg.text
+    f"[status_text] {msg.text}"
 
     # Detecting a depolyed parachute
     if "Parachute: Released" in msg.text:
@@ -633,22 +625,18 @@ def store_mutated_inputs():
     global Policy_violation_cnt
     Policy_violation_cnt += 1
 
-    for i in range(3):
+    for _ in range(3):
         print("***************Policy violation!***************")
 
-    f1 = open("mutated_log.txt", "r")
-    lines = f1.readlines()
+    with open("mutated_log.txt", "r") as f1:
+        lines = f1.readlines()
 
-    # Store the mutated inputs as a txt file
-    # './policies/chute/*.txt'
-    file_name = ""
-    file_name += "./policy_violations/"
-    file_name += str(Policy_violation_cnt)
-    file_name += ".txt"
+        file_name = "" + "./policy_violations/"
+        file_name += str(Policy_violation_cnt)
+        file_name += ".txt"
 
-    f2 = open(file_name, "w")
-    f2.writelines(lines)
-    f1.close()
+        f2 = open(file_name, "w")
+        f2.writelines(lines)
     f2.close()
 
     mutated_log = open("mutated_log.txt", "w")
@@ -658,7 +646,9 @@ def store_mutated_inputs():
 # ------------------------------------------------------------------------------------
 def print_distance(G_dist, P_dist, length, policy, guid):
     # Print distances
-    print("#---------------------------------%s-------------------------------------------" % policy)
+    print(
+        f"#---------------------------------{policy}-------------------------------------------"
+    )
     sys.stdout.write("[Distance] ")
     for i in range(length):
         sys.stdout.write("P%d: %f " % (i + 1, P_dist[i]))
@@ -692,14 +682,14 @@ def print_distance(G_dist, P_dist, length, policy, guid):
                 if Previous_distance[i] < P_dist[i]:
                     log_flag = 0
                     # a) Checking whether there is already stored same input pair
-                    for line in fp.readlines():
+                    for line in fp:
                         guide_line += line
 
                         if Current_input in line:
                             row = line.rstrip().split(' ')
                             if int(row[2]) == i + 1:
                                 log_flag = 1
-                                print("[Redundant input] {} {} {} {}".format(row[0], row[1], row[2], row[3]))
+                                print(f"[Redundant input] {row[0]} {row[1]} {row[2]} {row[3]}")
                                 print("[Redundant input] old:%f - new:%f" % (
                                 float(row[3]), (P_dist[i] - Previous_distance[i])))
                                 if float(row[3]) <= (P_dist[i] - Previous_distance[i]):
@@ -734,7 +724,7 @@ def print_distance(G_dist, P_dist, length, policy, guid):
                     fp.close()
                     write_guidance_log(print_input, action="append")
 
-                elif log_flag == 1 or log_flag == -1:
+                elif log_flag in [1, -1]:
                     fp.close()
 
                 elif log_flag == 2:
@@ -834,27 +824,13 @@ def calculate_distance(guidance):
     # 0: turn off, 1: turn on
 
     # P1
-    if Parachute_on == 1:
-        P[0] = 1
-    else:
-        P[0] = -1
+    P[0] = 1 if Parachute_on == 1 else -1
     # P2
-    if Armed == 0:
-        P[1] = 1
-    else:
-        P[1] = -1
+    P[1] = 1 if Armed == 0 else -1
     # P3
-    if current_flight_mode == "FLIP" or current_flight_mode == "ACRO":
-        P[2] = 1
-    else:
-        P[2] = -1
-
+    P[2] = 1 if current_flight_mode in ["FLIP", "ACRO"] else -1
     # P4
-    if current_alt > 0:
-        P[3] = (current_alt - previous_alt) / current_alt
-    else:
-        P[3] = 0
-
+    P[3] = (current_alt - previous_alt) / current_alt if current_alt > 0 else 0
     # P5
     # Request parameter
     master.mav.param_request_read_send(master.target_system, master.target_component, 'CHUTE_ALT_MIN', -1)
@@ -879,11 +855,7 @@ def calculate_distance(guidance):
     target_param_ready = 0
     # ----------------------- (start) A.RTL1 policy -----------------------
     # P1
-    if lat_avg == home_lat and lon_avg == home_lon:
-        P[0] = -1
-    else:
-        P[0] = 1
-
+    P[0] = -1 if lat_avg == home_lat and lon_avg == home_lon else 1
     # P2
     # Request parameter
     master.mav.param_request_read_send(
@@ -905,16 +877,8 @@ def calculate_distance(guidance):
 
     print("[Debug] RTL_ALT:%f, current_alt:%f" % (target_param_value, current_alt))
 
-    if current_flight_mode == "RTL":
-        P[2] = 1
-    else:
-        P[2] = -1
-
-    if previous_alt != 0:
-        P[3] = (previous_alt - current_alt) / previous_alt
-    else:
-        P[3] = 0
-
+    P[2] = 1 if current_flight_mode == "RTL" else -1
+    P[3] = (previous_alt - current_alt) / previous_alt if previous_alt != 0 else 0
     Global_distance = -1 * (min(P[0], P[1], P[2], P[3]))
 
     print_distance(G_dist=Global_distance, P_dist=P, length=4, policy="A.RTL1", guid=guidance)
@@ -1032,18 +996,13 @@ def throttle_th():
 # ------------------------------------------------------------------------------------
 def match_cmd(cmd):
     cmds = []
-    f = open("guidance_log.txt", 'r')
-    for line in f.readlines():
-        if cmd in line:
-            cmds.append(line)
-
-    f.close()
-
+    with open("guidance_log.txt", 'r') as f:
+        cmds.extend(line for line in f if cmd in line)
     if len(cmds) >= 2:
         index = random.randint(0, len(cmds) - 1)
         row = cmds[index].rstrip().split(' ')
         print("*****")
-        print("[Matched input] {} {} {} {}".format(row[0], row[1], row[2], row[3]))
+        print(f"[Matched input] {row[0]} {row[1]} {row[2]} {row[3]}")
         print("*****")
 
         return row[1]
@@ -1052,7 +1011,7 @@ def match_cmd(cmd):
         row = cmds[0].rstrip().split(' ')
 
         print("*****")
-        print("[Matched input] {} {} {} {}".format(row[0], row[1], row[2], row[3]))
+        print(f"[Matched input] {row[0]} {row[1]} {row[2]} {row[3]}")
         print("*****")
 
         return row[1]
@@ -1065,12 +1024,7 @@ def execute_cmd(num):
     global Current_input
     global Current_input_val
     global Guidance_decision
-    rand = []
-
-    # Each user command contains 7 parameters. We assign random values to these parameters.
-    for i in range(7):
-        rand.append(random.randint(1, 100))
-
+    rand = [random.randint(1, 100) for _ in range(7)]
     # To do: implement all if statements for all user commands
 
     Current_input = read_inputs.cmd_name[num]
@@ -1079,10 +1033,12 @@ def execute_cmd(num):
         Current_input_val = match_cmd(cmd=Current_input)
 
     if Current_input_val != "null":
-        print("@@@[Reuse stored input pair] (%s, %s)@@@" % (Current_input, Current_input_val))
+        print(
+            f"@@@[Reuse stored input pair] ({Current_input}, {Current_input_val})@@@"
+        )
 
     # ------------------------(start) execute a selected command-------------------------
-    if read_inputs.cmd_name[num] == "RC1" or read_inputs.cmd_name[num] == "RC2" or read_inputs.cmd_name[num] == "RC4":
+    if read_inputs.cmd_name[num] in ["RC1", "RC2", "RC4"]:
         target_RC = 0
         if Current_input_val == "null":
             mutated_value = random.randint(1200, 1900)
@@ -1137,8 +1093,7 @@ def execute_cmd(num):
             for i in range(7):
                 rand[i] = int(row[i])
 
-        Current_input_val = str(rand[0])
-        Current_input_val += ","
+        Current_input_val = f"{str(rand[0])},"
         Current_input_val += str(rand[1])
         Current_input_val += ","
         Current_input_val += str(rand[2])
@@ -1159,11 +1114,9 @@ def execute_cmd(num):
             rand[0], rand[1], rand[2], rand[3], rand[4], rand[5], rand[6])
     # ------------------------(end) execute a selected command-------------------------
 
-    print("[Execute_cmd] (%s, %s)" % (Current_input, Current_input_val))
+    print(f"[Execute_cmd] ({Current_input}, {Current_input_val})")
 
-    # Log executed the user command
-    print_cmd = ""
-    print_cmd += "C "
+    print_cmd = "" + "C "
     print_cmd += Current_input
     print_cmd += " "
     print_cmd += Current_input_val
@@ -1188,18 +1141,18 @@ def execute_env(num):
         rand = random.uniform(0, 100)
         Current_input_val = str(rand)
     else:
-        print("@@@[Reuse stored input pair] (%s, %s)@@@" % (Current_input, Current_input_val))
+        print(
+            f"@@@[Reuse stored input pair] ({Current_input}, {Current_input_val})@@@"
+        )
 
     master.mav.param_set_send(master.target_system, master.target_component,
                               Current_input,
                               float(Current_input_val),
                               mavutil.mavlink.MAV_PARAM_TYPE_REAL32)
 
-    print("[Execute_env] (%s, %s)" % (Current_input, Current_input_val))
+    print(f"[Execute_env] ({Current_input}, {Current_input_val})")
 
-    # Log executed the environmental factor
-    print_env = ""
-    print_env += "E "
+    print_env = "" + "E "
     print_env += Current_input
     print_env += " "
     print_env += Current_input_val
@@ -1248,8 +1201,7 @@ def pick_up_cmd():
 # ------------------------------------------------------------------------------------
 # Parsing parameters
 # To do: update the below path according to a changed target policy
-f_path_def = ""
-f_path_def += "./policies/"
+f_path_def = "" + "./policies/"
 f_path_def += Current_policy
 
 print("#-----------------------------------------------------------------------------")
@@ -1281,7 +1233,7 @@ print("#------------------------------------------------------------------------
 master.wait_heartbeat()
 
 # request data to be sent at the given rate
-for i in range(0, 3):
+for _ in range(0, 3):
     master.mav.request_data_stream_send(master.target_system, master.target_component,
                                         mavutil.mavlink.MAV_DATA_STREAM_ALL, 6, 1)
 
@@ -1299,7 +1251,7 @@ home_lon = home_lon * 1000
 print("home_lat: %f, home_lon: %f" % (home_lat, home_lon))
 
 # Testing --------------------------------------------------------------------------------------
-for i in range(30):
+for _ in range(30):
     P.append(0)
     Previous_distance.append(0)
 
@@ -1308,7 +1260,7 @@ mode = 'GUIDED'
 
 # Check if mode is available
 if mode not in master.mode_mapping():
-    print('Unknown mode : {}'.format(mode))
+    print(f'Unknown mode : {mode}')
     print('Try:', list(master.mode_mapping().keys()))
     exit(1)
 
@@ -1459,7 +1411,6 @@ while True:
             re_launch()
             count_main_loop = 0
 
-    # The vehicle is grounded
     elif drone_status == 3 and RV_alive == 1:
         print("[Debug] drone_status:%d" % drone_status)
         print("### Vehicle is grounded, Home alt:%f, Current alt:%f" % (home_altitude, current_altitude))
@@ -1467,10 +1418,9 @@ while True:
         re_launch()
         count_main_loop = 0
 
-    # It is in mayday and going down
     elif drone_status == 6:
         Armed = 0
-        for i in range(1, 5):
+        for _ in range(1, 5):
             print("@@@@@@@@@@ Drone losts control. It is in mayday and going down @@@@@@@@@@")
 
 print("-------------------- Fuzzing End --------------------")

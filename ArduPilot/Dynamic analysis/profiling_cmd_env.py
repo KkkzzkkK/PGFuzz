@@ -120,7 +120,7 @@ number_of_states = 34
 #------------------------------------------------------------------------------------
 def set_preconditions(filepath):
 
-        for line in open(filepath, 'r').readlines():
+        for line in open(filepath, 'r'):
                 row = line.rstrip().split(' ')
 
                 master.mav.param_set_send(master.target_system, master.target_component,
@@ -129,59 +129,44 @@ def set_preconditions(filepath):
                                 mavutil.mavlink.MAV_PARAM_TYPE_REAL32)
                 time.sleep(1)
 
-                print("[Set_preconditions] %s = %s" %(row[0], row[1]) )
+                print(f"[Set_preconditions] {row[0]} = {row[1]}")
 
 #------------------------------------------------------------------------------------
 def parsing_env(filepath):
 
-	global env_name
+        global env_name
 
-	print('##### (Start) Read a meta file for environmental factors #####')
-	cnt = 0
-
-	for line in open(filepath, 'r').readlines():
-		row = line.replace("\n", "")
-		env_name.append(row)
-		cnt += 1
-
-	print("##### The name of environmental factors #####");
-	print(env_name)
-	print('##### (End) Read a meta file for environmental factors #####')
+        print('##### (Start) Read a meta file for environmental factors #####')
+        for line in open(filepath, 'r'):
+                row = line.replace("\n", "")
+                env_name.append(row)
+        print("##### The name of environmental factors #####");
+        print(env_name)
+        print('##### (End) Read a meta file for environmental factors #####')
 #------------------------------------------------------------------------------------
 def parsing_command(filepath):
 
-	global cmd_name
-	global cmd_number
+        global cmd_name
+        global cmd_number
 
-	print('##### (Start) Read a meta file for user commands #####')
-	cnt = 0
-
-	for line in open(filepath, 'r').readlines():
-		#row = line.replace("\n", "")
-		row = line.rstrip().split(',')
-		cmd_name.append(row[0])
-		cmd_number.append(int(row[1]))
-		cnt += 1
-
-	print("##### The name of user commands #####");
-	print(cmd_name)
-	print(cmd_number)
-	print('##### (End) Read a meta file for user commands #####')
+        print('##### (Start) Read a meta file for user commands #####')
+        for line in open(filepath, 'r'):
+                #row = line.replace("\n", "")
+                row = line.rstrip().split(',')
+                cmd_name.append(row[0])
+                cmd_number.append(int(row[1]))
+        print("##### The name of user commands #####");
+        print(cmd_name)
+        print(cmd_number)
+        print('##### (End) Read a meta file for user commands #####')
 
 #------------------------------------------------------------------------------------
 def Standard_deviation(list):
-	# Standard deviation of list 
-	# Using sum() + list comprehension 
+        if len(list) <= 0:
+                return 0
 
-	# Prevent division by zero
-	if len(list) > 0:
-		mean = sum(list) / len(list) 
-		variance = sum([((x - mean) ** 2) for x in list]) / len(list) 
-		res = variance ** 0.5
-	else:
-		res = 0
-	
-	return res
+        mean = sum(list) / len(list)
+        return (sum((x - mean) ** 2 for x in list) / len(list))**0.5
 #------------------------------------------------------------------------------------
 #---------------------------- (Start) READ STATES OF AP -----------------------------
 def handle_heartbeat(msg):
@@ -327,28 +312,28 @@ def handle_position(msg):
 
 	#print(msg)
 	#print("lat:%f, lon:%f" %(float(msg.lat), float(msg.lon)))
-	
+
         global avg_start
         global position_cnt
         global avg_lat
         global avg_lon
-	global avg_vertical_speed
+        global avg_vertical_speed
 
-	lat = 0
-	lon = 0
-	v_speed = 0
+        lat = 0
+        lon = 0
+        v_speed = 0
         if avg_start == 1:
                 # Store average of hud data
                 position_cnt += 1
-		lat = msg.lat / 1000
-		lat = lat * 1000
-		lon = msg.lon / 1000
-		lon = lon * 1000
-		v_speed = msg.vz/100
+                lat = msg.lat / 1000
+                lat *= 1000
+                lon = msg.lon / 1000
+                lon *= 1000
+                v_speed = msg.vz/100
 
                 avg_lat.append(lat)
                 avg_lon.append(lon)
-		avg_vertical_speed.append(v_speed)
+                avg_vertical_speed.append(v_speed)
 
 	#print("[Debig] Vertical Speed:%d" %v_speed)
 
@@ -589,66 +574,64 @@ def re_launch():
 
 def init_files():
 
-	path = ""
-        path += "./results/"
-
-	file_path = path + "roll.txt"
-	f = open(file_path,"w")
-	f.close()
-
-        file_path = path + "pitch.txt"
-        f = open(file_path,"w")
-        f.close()
-	
-	file_path = path + "throttle.txt"
+        path = "" + "./results/"
+        file_path = f"{path}roll.txt"
         f = open(file_path,"w")
         f.close()
 
-	file_path = path + "yaw.txt"
+        file_path = f"{path}pitch.txt"
         f = open(file_path,"w")
         f.close()
 
-	file_path = path + "speed.txt"
+        file_path = f"{path}throttle.txt"
         f = open(file_path,"w")
         f.close()
 
-	file_path = path + "altitude.txt"
+        file_path = f"{path}yaw.txt"
         f = open(file_path,"w")
         f.close()
 
-	file_path = path + "position.txt"
+        file_path = f"{path}speed.txt"
         f = open(file_path,"w")
         f.close()
 
-	file_path = path + "status.txt"
+        file_path = f"{path}altitude.txt"
         f = open(file_path,"w")
         f.close()
 
-	file_path = path + "gyro.txt"
+        file_path = f"{path}position.txt"
         f = open(file_path,"w")
         f.close()
 
-	file_path = path + "accel.txt"
+        file_path = f"{path}status.txt"
         f = open(file_path,"w")
         f.close()
 
-	file_path = path + "baro.txt"
+        file_path = f"{path}gyro.txt"
         f = open(file_path,"w")
         f.close()
 
-	file_path = path + "GPS.txt"
+        file_path = f"{path}accel.txt"
         f = open(file_path,"w")
         f.close()
 
-	file_path = path + "parachute.txt"
+        file_path = f"{path}baro.txt"
         f = open(file_path,"w")
         f.close()
 
-	file_path = path + "pre_arm.txt"
+        file_path = f"{path}GPS.txt"
         f = open(file_path,"w")
         f.close()
 
-	file_path = path + "mission.txt"
+        file_path = f"{path}parachute.txt"
+        f = open(file_path,"w")
+        f.close()
+
+        file_path = f"{path}pre_arm.txt"
+        f = open(file_path,"w")
+        f.close()
+
+        file_path = f"{path}mission.txt"
         f = open(file_path,"w")
         f.close()
 
@@ -980,9 +963,9 @@ def profile(input_type, targetInput, input_value):
 master.wait_heartbeat()
 
 # request data to be sent at the given rate
-for i in range(0, 3):
-	master.mav.request_data_stream_send(master.target_system, master.target_component,
-                mavutil.mavlink.MAV_DATA_STREAM_ALL, 6, 1)
+for _ in range(0, 3):
+        master.mav.request_data_stream_send(master.target_system, master.target_component,
+        mavutil.mavlink.MAV_DATA_STREAM_ALL, 6, 1)
 
 message = master.recv_match(type='VFR_HUD', blocking=True)
 home_altitude = message.alt
@@ -996,9 +979,9 @@ mode = 'GUIDED'
 
 # Check if mode is available
 if mode not in master.mode_mapping():
-    print('Unknown mode : {}'.format(mode))
-    print('Try:', list(master.mode_mapping().keys()))
-    exit(1)
+        print(f'Unknown mode : {mode}')
+        print('Try:', list(master.mode_mapping().keys()))
+        exit(1)
 
 # Get mode ID
 mode_id = master.mode_mapping()[mode]
@@ -1070,7 +1053,7 @@ time.sleep(5)
 # Maintain mid-position of stick on RC controller 
 goal_throttle = 1500
 t1 = threading.Thread(target=throttle_th, args=())
-t1.daemon = True 
+t1.daemon = True
 t1.start()
 
 mode_id = master.mode_mapping()['STABILIZE']
@@ -1098,10 +1081,10 @@ print(cmd_number)
 init_files()
 
 sd = []
-for i in range(number_of_states):
-	sd.append(0)
-	SD_baseline.append(0)
-	SD_target_input.append(0)
+for _ in range(number_of_states):
+        sd.append(0)
+        SD_baseline.append(0)
+        SD_target_input.append(0)
 
 set_preconditions(Precondition_path)
 
@@ -1127,7 +1110,7 @@ for i in range(len(env_name)):
 	original_val = target_param_value
 
 	profile(input_type ="env", targetInput=env_name[i], input_value=0)
-	
+
 	# Restore original states
 	master.mav.param_set_send(master.target_system,
                                   master.target_component, target_param,
@@ -1143,14 +1126,14 @@ for i in range(len(env_name)):
 	target_param_value = 0
 
 
+start_profiling = 1
+
 #--------------------------------------------------------
 
 for i in range(len(cmd_name)):
 
-        print("[Analyzing user commands] %s" %cmd_name[i])
+        print(f"[Analyzing user commands] {cmd_name[i]}")
         profile(input_type="cmd", targetInput=cmd_name[i], input_value=cmd_number[i])
-        start_profiling = 1
-
         re_launch()
 
 #------------------------------------------------------------------------------------------------		

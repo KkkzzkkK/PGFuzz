@@ -100,16 +100,16 @@ def read_loop(m):
 #------------------------------------------------------------------------------------
 
 connection_string = '0.0.0.0:14540'
-master = mavutil.mavlink_connection('udp:'+connection_string)
+master = mavutil.mavlink_connection(f'udp:{connection_string}')
 
 # Wait a heartbeat before sending commands
 master.wait_heartbeat()
 print("HEARTBEAT OK\n")
 
 # request data to be sent at the given rate
-for i in range(0, 3):
-    master.mav.request_data_stream_send(master.target_system, master.target_component, 
-		mavutil.mavlink.MAV_DATA_STREAM_ALL, 6, 1)
+for _ in range(0, 3):
+	master.mav.request_data_stream_send(master.target_system, master.target_component, 
+	mavutil.mavlink.MAV_DATA_STREAM_ALL, 6, 1)
 
 # Request parameter
 master.mav.param_request_read_send(master.target_system, master.target_component, 'RTL_ALT',-1)

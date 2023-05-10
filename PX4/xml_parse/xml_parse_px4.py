@@ -34,7 +34,7 @@ from xml.etree.ElementTree import Element, dump, ElementTree
 
 def main(argv):
     # Parse command line arguments (i.e., input and output file)
-    
+
     output_file_type = 0 # -1: txt, 1: csv
     inputfile = ''
     outputfile = ''
@@ -45,7 +45,7 @@ def main(argv):
     except getopt.GetoptError:
         print("xml_parse_px4.py -i <inputfile> -o <outputfile>")
         sys.exit(2)
-    
+
     for opt, arg in opts:
         if opt == '-h':
             print("xml_parse_px4.py -i <inputfile> -o <outputfile>")
@@ -60,7 +60,7 @@ def main(argv):
 
     if re.search(".txt", outputfile):
         output_file_type = -1
-        
+
         store_file = open(outputfile, 'w')
         store_file.close()
 
@@ -74,7 +74,7 @@ def main(argv):
         store_file = open(outputfile, 'a')
         # creating a csv writer object
         csv_writer = csv.writer(store_file) 
-        
+
         # writing the fields 
         fields = ['Name', 'Description', 'Range', 'Default'] 
         csv_writer.writerow(fields) 
@@ -91,9 +91,9 @@ def main(argv):
     root = doc.getroot()
 
     count = 1      
- 
+
     for parameters in root.iter("group"):
-    
+
         for object in parameters.iter("parameter"):
             
             Name = ""
@@ -105,11 +105,11 @@ def main(argv):
 
             Name = object.get("name")
 
-            if object.find("long_desc") != None:
-                Description = object.find("long_desc").text
-            else:
+            if object.find("long_desc") is None:
                 Description = object.find("short_desc").text
 
+            else:
+                Description = object.find("long_desc").text
             # In some cases, the XML file mentions only 'min' or 'max'.
             min_exist = 0
             max_exist = 0
@@ -123,18 +123,18 @@ def main(argv):
                 max_exist = 1
 
             if min_exist == 1 and max_exist == 1:
-                Range = Min + " " + Max
+                Range = f"{Min} {Max}"
             elif min_exist == 1 and max_exist == 0:
-                Range = "min:" + Min
+                Range = f"min:{Min}"
             elif min_exist == 0 and max_exist == 1:
-                Range = "max:" + Max
+                Range = f"max:{Max}"
 
             Default = object.get("default")
-            
+
             print("%d, parameter name: %r, description: %r, range: %r, default: %r" % (count, Name, Description, Range, Default))
-            
+
             count = count +1
-                
+
             if output_file_type == -1:
                 write = ";;".join([Name, Description, Range, Default, "\n"]).encode('utf-8')
                 store_file.write(write)
