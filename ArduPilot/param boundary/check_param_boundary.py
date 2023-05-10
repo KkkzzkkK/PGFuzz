@@ -77,11 +77,11 @@ def profiling_mode():
 #------------------------------------------------------------------------------------
 def read_params():
 
-	global paramsName
-	
-	for line in open('default_params.txt', 'r').readlines():
-		row = line.rstrip().split(' ')
-		paramsName.append(row[0])
+        global paramsName
+
+        for line in open('default_params.txt', 'r'):
+                row = line.rstrip().split(' ')
+                paramsName.append(row[0])
 
 	# For debug
 	#print(paramsName)
@@ -163,11 +163,9 @@ def change_mode(mode_num, log):
 #-------------------------- (Start) Step1. Flying a drone -------------------------- 
 
 # Initialize mode map 
-for i in range(cols): 
-    col = [] 
-    for j in range(rows): 
-        col.append(0) 
-    mode_map.append(col) 
+for _ in range(cols):
+        col = [0 for _ in range(rows)]
+        mode_map.append(col) 
 
 # Wait a heartbeat before seniding commands
 master.wait_heartbeat()
@@ -177,9 +175,9 @@ mode = 'GUIDED'
 
 # Check if mode is available
 if mode not in master.mode_mapping():
-    print('Unknown mode : {}'.format(mode))
-    print('Try:', list(master.mode_mapping().keys()))
-    exit(1)
+        print(f'Unknown mode : {mode}')
+        print('Try:', list(master.mode_mapping().keys()))
+        exit(1)
 
 # Get mode ID
 mode_id = master.mode_mapping()[mode]
@@ -235,7 +233,7 @@ time.sleep(18)
 # Maintain mid-position of stick on RC controller 
 goal_throttle = 1560
 t1 = threading.Thread(target=throttle_th, args=())
-t1.daemon = True 
+t1.daemon = True
 t1.start()
 
 # Read default parameter list
@@ -256,7 +254,7 @@ for i in range(0, 1308):
 
 	time.sleep(1.5)
 	convert_mode()
-	
+
 	print("%s:%d" % (paramsName[i], Max_param))
 	master.mav.param_set_send(master.target_system, master.target_component,
                                 paramsName[i],

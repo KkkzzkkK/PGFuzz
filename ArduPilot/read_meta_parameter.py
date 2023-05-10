@@ -20,21 +20,16 @@ env_name = []
 def parsing_parameter(filepath):
 
 	print('##### (Start) Read a meta file for parameters #####')
-	cnt = 0
-
 	#filepath = 'meta_parameters.txt'
-	for line in open(filepath, 'r').readlines():
-
+	for cnt, line in enumerate(open(filepath, 'r'), start=1):
 		row = line.rstrip().split(',')
 		param_name.append(row[0])
-		param_reboot.append(row[1])	
+		param_reboot.append(row[1])
 		param_default.append(row[2])
 		param_min.append(row[3])
 		param_max.append(row[4])
 		param_units.append(row[5])
-		# row[0]: name of parameter, row[1]: reboot required, row[2]: Default value, row[3]: Valid range min, row[4]: Valid range max, row[5] Units
-		cnt += 1
-		print("# {} {} {} {} {} {} {}".format(cnt, row[0], row[1], row[2], row[3], row[4], row[5]))
+		print(f"# {cnt} {row[0]} {row[1]} {row[2]} {row[3]} {row[4]} {row[5]}")
 
 
 	print("##### The name of parameters #####");
@@ -52,13 +47,9 @@ def parsing_parameter(filepath):
 def parsing_command(filepath):
 
 	print('##### (Start) Read a meta file for user commands #####')
-	cnt = 0
-
-	for line in open(filepath, 'r').readlines():
+	for line in open(filepath, 'r'):
 		row = line.replace("\n", "")
 		cmd_name.append(row)
-		cnt += 1
-
 	print("##### The name of user commands #####");
 	print(cmd_name)
 	print('##### (End) Read a meta file for user commands #####')
@@ -68,13 +59,9 @@ def parsing_command(filepath):
 def parsing_env(filepath):
 
 	print('##### (Start) Read a meta file for environmental factors #####')
-	cnt = 0
-
-	for line in open(filepath, 'r').readlines():
+	for line in open(filepath, 'r'):
 		row = line.replace("\n", "")
 		env_name.append(row)
-		cnt += 1
-
 	print("##### The name of environmental factors #####");
 	print(env_name)
 	print('##### (End) Read a meta file for environmental factors #####')

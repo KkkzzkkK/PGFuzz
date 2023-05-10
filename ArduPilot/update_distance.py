@@ -52,66 +52,56 @@ def calculate_distances():
 	print("[Debug] calculate_distances() is called.")
 
         # A.CHUTE1 policy
-        global Parachute_on
-        global Armed
-        global current_flight_mode
-        global previous_altitude
-        global current_altitude
-        global Propositional_distance
-        global Global_distance
+	global Parachute_on
+	global Armed
+	global current_flight_mode
+	global previous_altitude
+	global current_altitude
+	global Propositional_distance
+	global Global_distance
 	global target_param
 
         # Propositional distances
         # 0: turn off, 1: turn on
 
         # P1
-        if Parachute_on == 1:
-                P1 = 1
-        else:
-                P1 = -1
+	P1 = 1 if Parachute_on == 1 else -1
         # P2
-        if Armed == 0:
-                P2 = 1
-        else:
-                P2 = -1
+	P2 = 1 if Armed == 0 else -1
         # P3
-        if current_flight_mode == "FLIP" or current_flight_mode == "ACRO":
-                P3 = 1
-        else:
-                P3 = -1
-
+	P3 = 1 if current_flight_mode in ["FLIP", "ACRO"] else -1
         # P4
-        P4 = (current_altitude - previous_altitude) / current_altitude
+	P4 = (current_altitude - previous_altitude) / current_altitude
 
         # P5
         # Request parameter
-        master.mav.param_request_read_send(master.target_system, master.target_component, 'CHUTE_ALT_MIN',-1)
+	master.mav.param_request_read_send(master.target_system, master.target_component, 'CHUTE_ALT_MIN',-1)
 
-        target_param = "CHUTE_ALT_MIN"
-        count = 0
-        while target_param_ready == 0 and count < 5:
-                time.sleep(1)
-                count += 1
+	target_param = "CHUTE_ALT_MIN"
+	count = 0
+	while target_param_ready == 0 and count < 5:
+	        time.sleep(1)
+	        count += 1
 
 
-        P5 = (target_param_value - current_altitude) / target_param_value
+	P5 = (target_param_value - current_altitude) / target_param_value
 
-        Global_distance = -1 * (min(P1, max(P2, P3, P4, P5)))
+	Global_distance = -1 * (min(P1, max(P2, P3, P4, P5)))
 
         # Print distances
-        print("#-----------------------------------------------------------------------------")
-        print('[Distance] P1:%f, P2:%f, P3:%f, P4:%f, P5:%f' %(P1, P2, P3, P4, P5))
-        print('[Distance] Global distance: %f' %Global_distance)
-        print("#-----------------------------------------------------------------------------")
+	print("#-----------------------------------------------------------------------------")
+	print('[Distance] P1:%f, P2:%f, P3:%f, P4:%f, P5:%f' %(P1, P2, P3, P4, P5))
+	print('[Distance] Global distance: %f' %Global_distance)
+	print("#-----------------------------------------------------------------------------")
 
-        if Global_distance < 0:
-                print("***************Policy violation!***************")
-                print("***************Policy violation!***************")
-                print("***************Policy violation!***************")
+	if Global_distance < 0:
+	        print("***************Policy violation!***************")
+	        print("***************Policy violation!***************")
+	        print("***************Policy violation!***************")
 
-        target_param_ready = 0
-        target_param =""
-        target_param_value = 0
+	target_param_ready = 0
+	target_param =""
+	target_param_value = 0
 
 #------------------------------------------------------------------------------------
 #--------------------- (Start) READ Robotic Vehicle's states ------------------------
@@ -251,9 +241,9 @@ def start_monitoring():
 	master.wait_heartbeat()
 
 	# request data to be sent at the given rate
-	for i in range(0, 3):
-        	master.mav.request_data_stream_send(master.target_system, master.target_component,
-                mavutil.mavlink.MAV_DATA_STREAM_ALL, 6, 1)
+	for _ in range(0, 3):
+		master.mav.request_data_stream_send(master.target_system, master.target_component,
+		mavutil.mavlink.MAV_DATA_STREAM_ALL, 6, 1)
 
 	t2 = threading.Thread(target=read_loop, args=())
 	t2.daemon = True

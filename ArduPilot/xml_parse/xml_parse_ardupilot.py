@@ -29,7 +29,7 @@ from xml.etree.ElementTree import Element, dump, ElementTree
 
 def main(argv):
     # Parse command line arguments (i.e., input and output file)
-    
+
     output_file_type = 0 # -1: txt, 1: csv
     inputfile = ''
     outputfile = ''
@@ -40,7 +40,7 @@ def main(argv):
     except getopt.GetoptError:
         print("xml_parse_ardupilot.py -i <inputfile> -o <outputfile>")
         sys.exit(2)
-    
+
     for opt, arg in opts:
         if opt == '-h':
             print("xml_parse_ardupilot.py -i <inputfile> -o <outputfile>")
@@ -55,7 +55,7 @@ def main(argv):
 
     if re.search(".txt", outputfile):
         output_file_type = -1
-        
+
         store_file = open(outputfile, 'w')
         store_file.close()
 
@@ -69,7 +69,7 @@ def main(argv):
         store_file = open(outputfile, 'a')
         # creating a csv writer object
         csv_writer = csv.writer(store_file) 
-        
+
         # writing the fields 
         fields = ['Name', 'Description', 'Range', 'Increment', 'Value', 'Read_only'] 
         csv_writer.writerow(fields) 
@@ -88,7 +88,7 @@ def main(argv):
     count = 1
 
     for iteration in range (2):
-    
+
         if iteration == 0:
             param_type = root.find('vehicles')
 
@@ -97,10 +97,10 @@ def main(argv):
 
 
         #parameters = param_type.find('parameters')
-    
+
         for parameters in param_type.iter("parameters"):
 
-    
+            
             for object in parameters.iter("param"):
                 #print(object.findtext("field"))
                 Name = object.get("name")
@@ -126,8 +126,8 @@ def main(argv):
 
                 print("%d, parameter name: %r, description: %r, range: %r, increment: %r, value: %r, read-only?: %r" % (count, Name, Description, Range, Increment, Value, Read_only))
                 count = count +1
-            
-                if Name == None:
+
+                if Name is None:
                     Name = ""
                 else:
                     # Let's get rid of "ArduCopter:".
@@ -137,9 +137,9 @@ def main(argv):
                     Name = re.sub('ArduPlane:', '', Name)
                     Name = re.sub('AntennaTracker:', '', Name)
 
-                if Description == None:
+                if Description is None:
                     Description = ""
-                
+
                 if output_file_type == -1:
                     write = ";;".join([Name, Description, Range, Increment, Value, Read_only, "\n"])
                     store_file.write(write)
